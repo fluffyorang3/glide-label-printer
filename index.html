@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Auto-Print Label</title>
     <!-- QZ Tray client (must be HTTPS to match GitHub Pages) -->
-    <script src="qz-tray.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
     <style>
       /* 10×7 cm label, bold labels */
       @page {
@@ -102,7 +102,6 @@
         </div>
       </div>
     </div>
-
     <script>
       window.addEventListener("load", async () => {
         // 1) Populate fields
@@ -115,7 +114,7 @@
 
         try {
           console.log("→ connecting to QZ Tray…");
-          await qz.websocket.connect(); // no security config
+          await qz.websocket.connect(); // now uses the UMD client
           console.log("✔ connected");
 
           const printer = await qz.printers.find("RP4xx Series 200DPI TSC");
