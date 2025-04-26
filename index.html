@@ -30,14 +30,18 @@
         justify-content: space-around;
         height: 100%;
       }
-      img {
-        max-height: 6cm;
+      /* QR code height = 6cm */
+      #qr {
+        height: 6cm;
+        width: auto;
       }
+      /* Logo width = QR code height (6cm), rotated */
       #logo {
-        height: 6cm; /* match QR code's height */
-        transform: rotate(-90deg); /* 90° CCW */
+        width: 6cm;
+        height: auto;
+        transform: rotate(-90deg);
         transform-origin: center;
-        margin-right: 0.05cm; /* minimal gap */
+        margin-right: 0.05cm;
       }
     </style>
     <!-- in-browser PDF generator -->
@@ -67,7 +71,7 @@
       // Connect to QZ Tray and print silently to Rongta RP410
       qz.websocket
         .connect()
-        .then(() => qz.printers.find("Rongta RP410")) // your Rongta RP410 label printer
+        .then(() => qz.printers.find("Rongta RP410")) // your printer name
         .then((printer) => {
           const element = document.getElementById("content");
           const opt = {
