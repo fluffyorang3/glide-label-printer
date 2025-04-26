@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Print Label</title>
     <style>
-      /* 10×7 cm landscape, bold text */
+      /* 10×7 cm label, bold text */
       @page {
         size: 10cm 7cm;
         margin: 0;
@@ -20,30 +20,38 @@
         width: 10cm;
         height: 7cm;
         display: flex;
+        justify-content: flex-start;
         align-items: center;
-        justify-content: flex-start; /* items start at left */
         padding: 0;
         box-sizing: border-box;
+        border: 0.1cm solid #000; /* black box border */
+      }
+      .left {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        margin-left: 0.2cm;
+      }
+      #logo {
+        width: 5cm; /* same as QR height */
+        height: auto;
+        transform: rotate(-90deg); /* 90° CCW */
+        transform-origin: center;
+        margin-bottom: 0.2cm;
+      }
+      #qr {
+        height: 5cm; /* slightly smaller */
+        width: auto;
+        margin-bottom: 0;
       }
       .details {
         display: flex;
         flex-direction: column;
         justify-content: space-around;
-        height: 100%;
-      }
-      /* Logo: width = QR height (6cm), rotated */
-      #logo {
-        width: 6cm;
-        height: auto;
-        transform: rotate(-90deg);
-        transform-origin: center;
-        margin-right: 0.2cm; /* minimal, same as QR margin */
-      }
-      /* QR code: fixed height, same margin */
-      #qr {
-        height: 6cm;
-        width: auto;
-        margin-right: 0.2cm;
+        height: 6.6cm; /* account for slight inner border */
+        margin-left: 0.5cm;
+        font-size: 14px; /* larger text */
       }
     </style>
     <!-- in-browser PDF generator -->
@@ -53,8 +61,10 @@
   </head>
   <body>
     <div id="content" class="container">
-      <img id="logo" src="benian_logo.png" alt="Logo" />
-      <img id="qr" src="" alt="QR code" />
+      <div class="left">
+        <img id="logo" src="benian_logo.png" alt="Logo" />
+        <img id="qr" src="" alt="QR code" />
+      </div>
       <div class="details">
         <div id="client"></div>
         <div id="city"></div>
