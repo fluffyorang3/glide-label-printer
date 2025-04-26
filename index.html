@@ -115,7 +115,7 @@
 
         try {
           // 2) Connect to QZ Tray
-          await qz.api.connect();
+          await qz.websocket.connect();
 
           // 3) Find the RP410
           const printer = await qz.printers.find("RP4xx Series 200DPI TSC");
@@ -131,7 +131,7 @@
           ]);
 
           // 5) Disconnect when done
-          await qz.api.disconnect();
+          await qz.websocket.disconnect();
         } catch (e) {
           console.error("Auto-print failed:", e);
         }
