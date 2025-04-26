@@ -143,13 +143,9 @@ FB86TJ/VMJr+ZwD9HhyJU6vrDAQ3UJR0zQGcvOZq9g==
         document.getElementById("date").textContent = params.get("date") || "";
 
         try {
-          console.log("→ connecting directly to wss://localhost:8181");
+          console.log("→ connecting to QZ Tray…");
           // 2) Connect only to port 8181 on localhost over secure WebSocket
-          await qz.websocket.connect({
-            host: "localhost",
-            port: 8181,
-            secure: true,
-          });
+          await qz.websocket.connect();
           console.log("✔ connected");
 
           // 3) Find your printer by its exact name
