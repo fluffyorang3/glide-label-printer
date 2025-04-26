@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Print Label</title>
+    <title>Auto-Print Label</title>
+    <!-- QZ Tray client (must be HTTPS to match GitHub Pages) -->
+    <script src="https://localhost:8181/qz-tray.js"></script>
     <style>
       /* 10×7 cm label, bold labels */
       @page {
@@ -24,7 +26,6 @@
         box-sizing: border-box;
         overflow: hidden;
       }
-      /* border overlay on top, inset slightly for tiny margin */
       .container::before {
         content: "";
         position: absolute;
@@ -69,27 +70,21 @@
         z-index: 1;
       }
       .right .label {
-        font-weight: bold;
+        font-weight: normal;
         font-size: 16px;
         margin-bottom: 0.1cm;
       }
       .right .value {
-        font-weight: normal;
+        font-weight: bold;
         font-size: 16px;
         margin-bottom: 0.3cm;
       }
     </style>
-    <!-- html2pdf.js for in-browser PDF conversion -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- QZ Tray for direct print -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
   </head>
   <body>
     <div id="content" class="container">
       <div class="left">
-        <!-- Logo on top -->
         <img id="logo" src="benian_logo.png" alt="Logo" />
-        <!-- QR code below -->
         <img id="qr" src="" alt="QR code" />
       </div>
       <div class="right">
@@ -107,38 +102,40 @@
         </div>
       </div>
     </div>
-    <script>
-      // Populate fields
-      const params = new URLSearchParams(window.location.search);
-      document.getElementById("qr").src = params.get("qr");
-      document.getElementById("client").textContent =
-        params.get("client") || "";
-      document.getElementById("city").textContent = params.get("city") || "";
-      document.getElementById("date").textContent = params.get("date") || "";
 
-      // Silent print via QZ Tray to Rongta RP410
-      qz.websocket
-        .connect()
-        .then(() => qz.printers.find("Rongta RP410"))
-        .then((printer) =>
-          html2pdf()
-            .set({
-              margin: 0,
-              jsPDF: { unit: "cm", format: [10, 7], orientation: "landscape" },
-              html2canvas: { scale: 2 },
-            })
-            .from(document.getElementById("content"))
-            .toPdf()
-            .output("datauristring")
-            .then((dataUri) => ({ printer, dataUri }))
-        )
-        .then(({ printer, dataUri }) => {
-          const base64 = dataUri.split(",")[1];
-          return qz.print(printer, [
-            { type: "pdf", format: "base64", data: base64 },
+    <script>
+      window.addEventListener("load", async () => {
+        // 1) Populate fields from URL
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById("qr").src = params.get("qr") || "";
+        document.getElementById("client").textContent =
+          params.get("client") || "";
+        document.getElementById("city").textContent = params.get("city") || "";
+        document.getElementById("date").textContent = params.get("date") || "";
+
+        try {
+          // 2) Connect to QZ Tray
+          await qz.api.connect();
+
+          // 3) Find the RP410
+          const printer = await qz.printers.find("Rongta RP410");
+
+          // 4) Print the container’s HTML directly
+          const htmlContent = document.getElementById("content").outerHTML;
+          await qz.print(printer, [
+            {
+              type: "html",
+              format: "plain",
+              data: htmlContent,
+            },
           ]);
-        })
-        .catch(console.error);
+
+          // 5) Disconnect when done
+          await qz.api.disconnect();
+        } catch (e) {
+          console.error("Auto-print failed:", e);
+        }
+      });
     </script>
   </body>
 </html>
