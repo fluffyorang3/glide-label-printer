@@ -33,15 +33,17 @@
         justify-content: flex-start;
         margin-left: 0.2cm;
       }
+      /* Logo on top, width = QR height */
       #logo {
-        width: 5cm; /* same as QR height */
+        width: 5cm;
         height: auto;
-        transform: rotate(-90deg); /* 90° CCW */
+        transform: rotate(90deg); /* 90° clockwise */
         transform-origin: center;
         margin-bottom: 0.2cm;
       }
+      /* QR code: fixed height, same minimal margin */
       #qr {
-        height: 5cm; /* slightly smaller */
+        height: 5cm;
         width: auto;
         margin-bottom: 0;
       }
@@ -49,7 +51,7 @@
         display: flex;
         flex-direction: column;
         justify-content: space-around;
-        height: 6.6cm; /* account for slight inner border */
+        height: 6.6cm; /* account for inner border */
         margin-left: 0.5cm;
         font-size: 14px; /* larger text */
       }
@@ -83,7 +85,7 @@
       // Connect to QZ Tray and print silently to Rongta RP410
       qz.websocket
         .connect()
-        .then(() => qz.printers.find("Rongta RP410")) // your printer name
+        .then(() => qz.printers.find("Rongta RP410"))
         .then((printer) => {
           const element = document.getElementById("content");
           const opt = {
