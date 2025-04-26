@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Print Label</title>
     <style>
-      /* 10×7 cm landscape, bolder text */
+      /* 10×7 cm landscape, bold text */
       @page {
         size: 10cm 7cm;
         margin: 0;
@@ -21,8 +21,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        /* reduce left padding to tighten against left margin */
-        padding: 0.3cm 0.3cm 0.3cm 0.1cm;
+        padding: 0;
         box-sizing: border-box;
       }
       .details {
@@ -35,18 +34,15 @@
         max-height: 6cm;
       }
       #logo {
-        /* span full height of the container (accounting for padding) */
-        height: 100%;
-        /* rotate 90° counterclockwise */
-        transform: rotate(-90deg);
+        height: 100%; /* full height */
+        transform: rotate(-90deg); /* 90° CCW */
         transform-origin: center;
-        /* tighter spacing between logo and QR */
-        margin-right: 0.2cm;
+        margin-right: 0.05cm; /* minimal gap */
       }
     </style>
-    <!-- in-browser PDF renderer -->
+    <!-- in-browser PDF generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- QZ Tray silent print -->
+    <!-- QZ Tray for silent printing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
   </head>
   <body>
@@ -60,7 +56,7 @@
       </div>
     </div>
     <script>
-      // 1) Pull data from query-string
+      // Fetch query params from Glide
       const p = new URLSearchParams(window.location.search);
       document.getElementById("qr").src = p.get("qr");
       document.getElementById("client").textContent =
@@ -68,17 +64,24 @@
       document.getElementById("city").textContent = "City: " + p.get("city");
       document.getElementById("date").textContent = "Date: " + p.get("date");
 
-      // 2) Connect to QZ Tray & print silently
+      // Connect to QZ Tray and print silently
       qz.websocket
         .connect()
-        .then(() => qz.printers.find("Xerox_123")) // ← your printer name
-        .then((printer) =>
-          html2pdf()
-            .from(document.getElementById("content"))
+        .then(() => qz.printers.find("Xerox_123")) // your printer name
+        .then((printer) => {
+          const element = document.getElementById("content");
+          const opt = {
+            margin: 0,
+            jsPDF: { unit: "cm", format: [10, 7], orientation: "landscape" },
+            html2canvas: { scale: 2 },
+          };
+          return html2pdf()
+            .set(opt)
+            .from(element)
             .toPdf()
             .output("datauristring")
-            .then((dataUri) => ({ printer, dataUri }))
-        )
+            .then((dataUri) => ({ printer, dataUri }));
+        })
         .then(({ printer, dataUri }) => {
           const base64 = dataUri.split(",")[1];
           return qz.print(printer, [
