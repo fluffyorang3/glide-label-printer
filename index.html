@@ -34,22 +34,23 @@
         max-height: 6cm;
       }
       #logo {
-        height: 1.5cm;
+        /* span full height of the container (accounting for padding) */
+        height: 100%;
+        /* rotate 90° counterclockwise */
+        transform: rotate(-90deg);
+        transform-origin: center;
         margin-right: 0.5cm;
       }
     </style>
-    <!-- html2pdf.js for in-browser PDF generation -->
+    <!-- in-browser PDF renderer -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- QZ Tray for silent network printing -->
+    <!-- QZ Tray silent print -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
   </head>
   <body>
     <div id="content" class="container">
-      <!-- Company logo -->
-      <img id="logo" src="benian_logo.svg" alt="Benian Logo" />
-      <!-- QR code image -->
+      <img id="logo" src="benian_logo.svg" alt="Logo" />
       <img id="qr" src="" alt="QR code" />
-      <!-- Order details -->
       <div class="details">
         <div id="client"></div>
         <div id="city"></div>
@@ -57,37 +58,29 @@
       </div>
     </div>
     <script>
-      // 1) Read query parameters from Glide
-      const params = new URLSearchParams(window.location.search);
-      document.getElementById("qr").src = params.get("qr");
+      // 1) Pull data from query-string
+      const p = new URLSearchParams(window.location.search);
+      document.getElementById("qr").src = p.get("qr");
       document.getElementById("client").textContent =
-        "Client: " + params.get("client");
-      document.getElementById("city").textContent =
-        "City: " + params.get("city");
-      document.getElementById("date").textContent =
-        "Date: " + params.get("date");
+        "Client: " + p.get("client");
+      document.getElementById("city").textContent = "City: " + p.get("city");
+      document.getElementById("date").textContent = "Date: " + p.get("date");
 
-      // 2) Connect to QZ Tray and silently print PDF
+      // 2) Connect to QZ Tray & print silently
       qz.websocket
         .connect()
-        .then(() => qz.printers.find("Xerox_123")) // change to your printer name
-        .then((printer) => {
-          // Render the content container to a PDF data URI
-          return html2pdf()
+        .then(() => qz.printers.find("Xerox_123")) // ← your printer name
+        .then((printer) =>
+          html2pdf()
             .from(document.getElementById("content"))
             .toPdf()
             .output("datauristring")
-            .then((dataUri) => ({ printer, dataUri }));
-        })
+            .then((dataUri) => ({ printer, dataUri }))
+        )
         .then(({ printer, dataUri }) => {
-          // Strip prefix and send base64 PDF to printer
           const base64 = dataUri.split(",")[1];
           return qz.print(printer, [
-            {
-              type: "pdf",
-              format: "base64",
-              data: base64,
-            },
+            { type: "pdf", format: "base64", data: base64 },
           ]);
         })
         .catch(console.error);
