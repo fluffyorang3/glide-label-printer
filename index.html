@@ -118,7 +118,7 @@
           await qz.api.connect();
 
           // 3) Find the RP410
-          const printer = await qz.printers.find("Rongta RP410");
+          const printer = await qz.printers.find("RP4xx Series 200DPI TSC");
 
           // 4) Print the container’s HTML directly
           const htmlContent = document.getElementById("content").outerHTML;
