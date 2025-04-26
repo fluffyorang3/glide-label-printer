@@ -20,45 +20,44 @@
         width: 10cm;
         height: 7cm;
         display: flex;
-        justify-content: flex-start;
         align-items: center;
         padding: 0;
         box-sizing: border-box;
-        border: 0.1cm solid #000; /* black box border */
+        border: 0.1cm solid #000; /* black border */
       }
       .left {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: flex-start;
         justify-content: flex-start;
-        margin-left: 0.2cm;
       }
-      /* Logo on top, width = QR height */
+      /* Logo width = QR height (5cm), rotated 270° CW->CCW equivalent to 90° CCW */
       #logo {
         width: 5cm;
         height: auto;
-        transform: rotate(90deg); /* 90° clockwise */
-        transform-origin: center;
-        margin-bottom: 0.2cm;
+        transform: rotate(270deg);
+        transform-origin: top left;
+        margin-left: 0.1cm; /* minimal left margin */
+        margin-bottom: 0.1cm; /* small gap to QR */
       }
-      /* QR code: fixed height, same minimal margin */
+      /* QR code: fixed height, matches logo width */
       #qr {
         height: 5cm;
         width: auto;
-        margin-bottom: 0;
+        margin-bottom: 0.1cm; /* same gap */
       }
       .details {
         display: flex;
         flex-direction: column;
         justify-content: space-around;
-        height: 6.6cm; /* account for inner border */
-        margin-left: 0.5cm;
+        height: 6.8cm; /* account for border */
+        margin-left: 0.4cm;
         font-size: 14px; /* larger text */
       }
     </style>
-    <!-- in-browser PDF generator -->
+    <!-- html2pdf.js for PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- QZ Tray for silent printing -->
+    <!-- QZ Tray for silent print -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
   </head>
   <body>
@@ -74,7 +73,7 @@
       </div>
     </div>
     <script>
-      // Fetch query params from Glide
+      // Read query params
       const p = new URLSearchParams(window.location.search);
       document.getElementById("qr").src = p.get("qr");
       document.getElementById("client").textContent =
@@ -82,24 +81,22 @@
       document.getElementById("city").textContent = "City: " + p.get("city");
       document.getElementById("date").textContent = "Date: " + p.get("date");
 
-      // Connect to QZ Tray and print silently to Rongta RP410
+      // Silent print via QZ Tray
       qz.websocket
         .connect()
         .then(() => qz.printers.find("Rongta RP410"))
-        .then((printer) => {
-          const element = document.getElementById("content");
-          const opt = {
-            margin: 0,
-            jsPDF: { unit: "cm", format: [10, 7], orientation: "landscape" },
-            html2canvas: { scale: 2 },
-          };
-          return html2pdf()
-            .set(opt)
-            .from(element)
+        .then((printer) =>
+          html2pdf()
+            .set({
+              margin: 0,
+              jsPDF: { unit: "cm", format: [10, 7], orientation: "landscape" },
+              html2canvas: { scale: 2 },
+            })
+            .from(document.getElementById("content"))
             .toPdf()
             .output("datauristring")
-            .then((dataUri) => ({ printer, dataUri }));
-        })
+            .then((dataUri) => ({ printer, dataUri }))
+        )
         .then(({ printer, dataUri }) => {
           const base64 = dataUri.split(",")[1];
           return qz.print(printer, [
