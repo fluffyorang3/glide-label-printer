@@ -114,13 +114,15 @@
 
         try {
           console.log("→ connecting to QZ Tray…");
-          await qz.websocket.connect(); // now uses the UMD client
+          await qz.websocket.connect();
           console.log("✔ connected");
 
-          const printer = await qz.printers.find("RP4xx Series 200DPI TSC");
-          console.log("✔ found printer", printer);
+          // 2) Create a print config for your exact printer name
+          const cfg = qz.configs.create("RP4xx Series 200DPI TSC");
+          console.log("✔ config created for printer:", cfg);
 
-          await qz.print(printer, [
+          // 3) Send the label HTML via that config
+          await qz.print(cfg, [
             {
               type: "html",
               format: "plain",
