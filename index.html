@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Print Label</title>
     <style>
-      /* 10×7 cm label, bold text */
+      /* 10×7 cm landscape, bold labels */
       @page {
         size: 10cm 7cm;
         margin: 0;
@@ -20,68 +20,82 @@
         width: 10cm;
         height: 7cm;
         display: flex;
-        align-items: center;
-        padding: 0;
         box-sizing: border-box;
-        border: 0.1cm solid #000; /* black border */
+        border: 0.1cm solid #000;
       }
       .left {
+        width: 5cm;
+        height: 7cm;
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         justify-content: flex-start;
       }
-      /* Logo width = QR height (5cm), rotated 270° CW->CCW equivalent to 90° CCW */
       #logo {
-        width: 5cm;
-        height: auto;
-        transform: rotate(270deg);
-        transform-origin: top left;
-        margin-left: 0.1cm; /* minimal left margin */
-        margin-bottom: 0.1cm; /* small gap to QR */
+        max-width: 4.5cm;
+        max-height: 1.5cm;
+        margin-top: 0.2cm;
       }
-      /* QR code: fixed height, matches logo width */
       #qr {
+        width: 5cm;
         height: 5cm;
-        width: auto;
-        margin-bottom: 0.1cm; /* same gap */
+        margin-top: 0.2cm;
       }
-      .details {
+      .right {
+        flex: 1;
+        padding: 0.4cm;
         display: flex;
         flex-direction: column;
         justify-content: space-around;
-        height: 6.8cm; /* account for border */
-        margin-left: 0.4cm;
-        font-size: 14px; /* larger text */
+        font-size: 12px;
+      }
+      .right .label {
+        font-weight: bold;
+        margin-bottom: 0.1cm;
+      }
+      .right .value {
+        font-weight: normal;
+        margin-bottom: 0.3cm;
       }
     </style>
-    <!-- html2pdf.js for PDF -->
+    <!-- html2pdf.js for in-browser PDF conversion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- QZ Tray for silent print -->
+    <!-- QZ Tray for direct print -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
   </head>
   <body>
     <div id="content" class="container">
       <div class="left">
+        <!-- Logo on top -->
         <img id="logo" src="benian_logo.png" alt="Logo" />
+        <!-- QR code below -->
         <img id="qr" src="" alt="QR code" />
       </div>
-      <div class="details">
-        <div id="client"></div>
-        <div id="city"></div>
-        <div id="date"></div>
+      <div class="right">
+        <div>
+          <div class="label">Client:</div>
+          <div class="value" id="client"></div>
+        </div>
+        <div>
+          <div class="label">City:</div>
+          <div class="value" id="city"></div>
+        </div>
+        <div>
+          <div class="label">Date:</div>
+          <div class="value" id="date"></div>
+        </div>
       </div>
     </div>
     <script>
-      // Read query params
-      const p = new URLSearchParams(window.location.search);
-      document.getElementById("qr").src = p.get("qr");
+      // Populate text fields
+      const params = new URLSearchParams(window.location.search);
+      document.getElementById("qr").src = params.get("qr");
       document.getElementById("client").textContent =
-        "Client: " + p.get("client");
-      document.getElementById("city").textContent = "City: " + p.get("city");
-      document.getElementById("date").textContent = "Date: " + p.get("date");
+        params.get("client") || "";
+      document.getElementById("city").textContent = params.get("city") || "";
+      document.getElementById("date").textContent = params.get("date") || "";
 
-      // Silent print via QZ Tray
+      // Silent print via QZ Tray to Rongta RP410
       qz.websocket
         .connect()
         .then(() => qz.printers.find("Rongta RP410"))
