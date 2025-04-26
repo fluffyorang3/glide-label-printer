@@ -106,17 +106,64 @@
       </div>
     </div>
     <script>
-      // Populate fields
+      //
+      // 0) Trust QZ Tray’s public certificate in-page
+      //
+      qz.security.setCertificatePromise((resolve, reject) => {
+        resolve(`-----BEGIN CERTIFICATE-----
+MIIECzCCAvOgAwIBAgIGAZZyoXRRMA0GCSqGSIb3DQEBCwUAMIGiMQswCQYDVQQG
+EwJVUzELMAkGA1UECAwCTlkxEjAQBgNVBAcMCUNhbmFzdG90YTEbMBkGA1UECgwS
+UVogSW5kdXN0cmllcywgTExDMRswGQYDVQQLDBJRWiBJbmR1c3RyaWVzLCBMTEMx
+HDAaBgkqhkiG9w0BCQEWDXN1cHBvcnRAcXouaW8xGjAYBgNVBAMMEVFaIFRyYXkg
+RGVtbyBDZXJ0MB4XDTI1MDQyNTE1MDUwNVoXDTQ1MDQyNTE1MDUwNVowgaIxCzAJ
+BgNVBAYTAlVTMQswCQYDVQQIDAJOWTESMBAGA1UEBwwJQ2FuYXN0b3RhMRswGQYD
+VQQKDBJRWiBJbmR1c3RyaWVzLCBMTEMxGzAZBgNVBAsMElFaIEluZHVzdHJpZXMs
+IExMQzEcMBoGCSqGSIb3DQEJARYNc3VwcG9ydEBxei5pbzEaMBgGA1UEAwwRUVog
+VHJheSBEZW1vIENlcnQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC9
+Eqj+EVdI0cBXz3bkktvDMnYkUGgiSuygOaOHbmXCywIQLVEgOah+H7+keqz6XJoE
+eKR0k5Pwypr8ZV7kC5Oj0q8/3u+CKMF6njZGgJKjmAtRaUkrP/vpGUpN+cC4C/Pk
+Ibe/7inQ4gzdGghl3rI4gMi0nmcd3h7scyPMMjCPFsbtmbYqTV4VY97U/nb49PJw
+CQfQRvzpTF9JIAnU3v+B8XfhWy6qcX3UA7tui+n3Td28inHVYdtcY9Ks2QVsolsM
+B1IKcqK4qEurytkvg2VenOKr5lIBBMWnA9sZzBnuiIirWOxgwJbYefy0X4+VButh
+QUW7SXnHqkWDBN64EnklAgMBAAGjRTBDMBIGA1UdEwEB/wQIMAYBAf8CAQEwDgYD
+VR0PAQH/BAQDAgEGMB0GA1UdDgQWBBRA+KPYhZzPD+zMIPRSM0mOWPukSTANBgkq
+hkiG9w0BAQsFAAOCAQEAnx6ne+OtVMmT1VO7wsViSfKHN5FNSRqElrNJnFUkn8hp
+03qf2RfctaPA+2FBU36kQbUmHCf7ynIFMElF+sw58+VYZ3mFJFp87ehg2HDYr2ev
+uZY96zRMUzkhALVae40JHmSmaeWW9ePW7KjpeeSvmzIAdrvGEjU4XL2utpMek7u1
+VUST7BiaMXgAyTcpruCRomzyGllbt4YhastR+ju5ufD4TW563ePSInhCkmRRjAUO
+qHypstN6+VOkppY2wtNDC6RkjFjhcKZiM704M5e6EUQIOl98IjJWT1gQkwGfeNs9
+sn+pHXACQtx2fcAqN1XbxUMN6/DVeCaqe9sUfkryfg==
+-----END CERTIFICATE-----`);
+      });
+
+      //
+      // 1) No-op signature (just like demo.qz.io)
+      //
+      qz.security.setSignaturePromise((toSign) => {
+        return (resolve, reject) => {
+          resolve();
+        };
+      });
+
+      //
+      // 2) Populate your fields
+      //
       const params = new URLSearchParams(window.location.search);
-      document.getElementById("qr").src = params.get("qr");
+      document.getElementById("qr").src = params.get("qr") || "";
       document.getElementById("client").textContent =
         params.get("client") || "";
       document.getElementById("city").textContent = params.get("city") || "";
       document.getElementById("date").textContent = params.get("date") || "";
 
-      // Silent print via QZ Tray to Rongta RP410
+      //
+      // 3) Connect & print silently to your Rongta RP410
+      //
       qz.websocket
-        .connect()
+        .connect({
+          host: "192.168.1.100", // ← replace with your print-server’s LAN IP
+          port: 8181,
+          secure: true,
+        })
         .then(() => qz.printers.find("Rongta RP410"))
         .then((printer) =>
           html2pdf()
