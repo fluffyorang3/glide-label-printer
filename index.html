@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Print Label</title>
+    <style>
+      /* 10×7 cm landscape */
+      @page {
+        size: 10cm 7cm;
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        font-size: 12px;
+      }
+      .container {
+        width: 10cm;
+        height: 7cm;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.3cm;
+        box-sizing: border-box;
+      }
+      .details {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        height: 100%;
+      }
+      img {
+        max-height: 6cm;
+      }
+    </style>
+    <!-- html2pdf.js for layout → PDF-in-memory -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- QZ Tray for silent printing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
+  </head>
+  <body>
+    <div id="content" class="container">
+      <img id="qr" src="" alt="QR code" />
+      <div class="details">
+        <div id="client"></div>
+        <div id="city"></div>
+        <div id="date"></div>
+      </div>
+    </div>
+    <script>
+      // 1) grab your Glide-supplied data
+      const p = new URLSearchParams(window.location.search);
+      document.getElementById("qr").src = p.get("qr");
+      document.getElementById("client").textContent =
+        "Client: " + p.get("client");
+      document.getElementById("city").textContent = "City: " + p.get("city");
+      document.getElementById("date").textContent = "Date: " + p.get("date");
+
+      // 2) connect to QZ Tray and auto-print
+      qz.websocket
+        .connect()
+        .then(() => qz.printers.find("Xerox_123")) // ← your network-printer name
+        .then((printer) => {
+          // generate a PDF in-memory, return a data URI string
+          return html2pdf()
+            .from(document.getElementById("content"))
+            .toPdf()
+            .output("datauristring")
+            .then((dataUri) => ({ printer, dataUri }));
+        })
+        .then(({ printer, dataUri }) => {
+          // strip off the "data:application/pdf;base64," prefix
+          const base64 = dataUri.split(",")[1];
+          // send straight to printer, no dialog
+          return qz.print(printer, [
+            {
+              type: "pdf",
+              format: "base64",
+              data: base64,
+            },
+          ]);
+        })
+        .catch(console.error);
+    </script>
+  </body>
+</html>
