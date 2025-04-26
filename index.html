@@ -21,7 +21,8 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0.3cm;
+        /* reduce left padding to tighten against left margin */
+        padding: 0.3cm 0.3cm 0.3cm 0.1cm;
         box-sizing: border-box;
       }
       .details {
@@ -39,7 +40,8 @@
         /* rotate 90° counterclockwise */
         transform: rotate(-90deg);
         transform-origin: center;
-        margin-right: 0.5cm;
+        /* tighter spacing between logo and QR */
+        margin-right: 0.2cm;
       }
     </style>
     <!-- in-browser PDF renderer -->
