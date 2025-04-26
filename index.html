@@ -5,6 +5,7 @@
     <title>Auto-Print Label</title>
     <!-- QZ Tray client (must be HTTPS to match GitHub Pages) -->
     <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
       /* 10×7 cm label, bold labels */
       @page {
@@ -104,7 +105,7 @@
     </div>
     <script>
       window.addEventListener("load", async () => {
-        // 1) Populate fields
+        // 1) populate your fields as before
         const params = new URLSearchParams(window.location.search);
         document.getElementById("qr").src = params.get("qr") || "";
         document.getElementById("client").textContent =
@@ -117,20 +118,33 @@
           await qz.websocket.connect();
           console.log("✔ connected");
 
-          // 2) Create a print config for your exact printer name
+          // 2) create printer config
           const cfg = qz.configs.create("RP4xx Series 200DPI TSC");
-          console.log("✔ config created for printer:", cfg);
+          console.log("✔ config created:", cfg);
 
-          // 3) Send the label HTML via that config
+          // 3) render the label div to a canvas at 4× for quality
+          console.log("→ rendering label to canvas…");
+          const canvas = await html2canvas(document.getElementById("content"), {
+            scale: 4,
+            useCORS: true,
+          });
+
+          // 4) extract the PNG data (base64)
+          const dataUrl = canvas.toDataURL("image/png");
+          const base64 = dataUrl.split(",")[1];
+
+          // 5) print the image
+          console.log("→ sending image to printer…");
           await qz.print(cfg, [
             {
-              type: "html",
-              format: "plain",
-              data: document.getElementById("content").outerHTML,
+              type: "image",
+              format: "base64",
+              data: base64,
             },
           ]);
           console.log("✔ print job sent");
 
+          // 6) clean up
           await qz.websocket.disconnect();
           console.log("✔ disconnected");
         } catch (e) {
