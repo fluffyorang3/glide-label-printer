@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Print Label</title>
     <style>
-      /* 10×7 cm landscape */
+      /* 10×7 cm landscape, bolder text */
       @page {
         size: 10cm 7cm;
         margin: 0;
@@ -13,6 +13,7 @@
         margin: 0;
         font-family: sans-serif;
         font-size: 12px;
+        font-weight: bold;
       }
       .container {
         width: 10cm;
@@ -32,15 +33,23 @@
       img {
         max-height: 6cm;
       }
+      #logo {
+        height: 1.5cm;
+        margin-right: 0.5cm;
+      }
     </style>
-    <!-- html2pdf.js for layout → PDF-in-memory -->
+    <!-- html2pdf.js for in-browser PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- QZ Tray for silent printing -->
+    <!-- QZ Tray for silent network printing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
   </head>
   <body>
     <div id="content" class="container">
+      <!-- Company logo -->
+      <img id="logo" src="benian_logo.svg" alt="Benian Logo" />
+      <!-- QR code image -->
       <img id="qr" src="" alt="QR code" />
+      <!-- Order details -->
       <div class="details">
         <div id="client"></div>
         <div id="city"></div>
@@ -48,20 +57,22 @@
       </div>
     </div>
     <script>
-      // 1) grab your Glide-supplied data
-      const p = new URLSearchParams(window.location.search);
-      document.getElementById("qr").src = p.get("qr");
+      // 1) Read query parameters from Glide
+      const params = new URLSearchParams(window.location.search);
+      document.getElementById("qr").src = params.get("qr");
       document.getElementById("client").textContent =
-        "Client: " + p.get("client");
-      document.getElementById("city").textContent = "City: " + p.get("city");
-      document.getElementById("date").textContent = "Date: " + p.get("date");
+        "Client: " + params.get("client");
+      document.getElementById("city").textContent =
+        "City: " + params.get("city");
+      document.getElementById("date").textContent =
+        "Date: " + params.get("date");
 
-      // 2) connect to QZ Tray and auto-print
+      // 2) Connect to QZ Tray and silently print PDF
       qz.websocket
         .connect()
-        .then(() => qz.printers.find("Xerox_123")) // ← your network-printer name
+        .then(() => qz.printers.find("Xerox_123")) // change to your printer name
         .then((printer) => {
-          // generate a PDF in-memory, return a data URI string
+          // Render the content container to a PDF data URI
           return html2pdf()
             .from(document.getElementById("content"))
             .toPdf()
@@ -69,9 +80,8 @@
             .then((dataUri) => ({ printer, dataUri }));
         })
         .then(({ printer, dataUri }) => {
-          // strip off the "data:application/pdf;base64," prefix
+          // Strip prefix and send base64 PDF to printer
           const base64 = dataUri.split(",")[1];
-          // send straight to printer, no dialog
           return qz.print(printer, [
             {
               type: "pdf",
