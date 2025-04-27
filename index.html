@@ -89,26 +89,5 @@
       document.getElementById("city").textContent = p.get("city") || "";
       document.getElementById("date").textContent = p.get("date") || "";
     </script>
-
-    <!-- trigger print via ngrok -->
-    <script>
-      const p = new URLSearchParams(location.search);
-      const enc = (x) => encodeURIComponent(p.get(x) || "");
-      // ← your ngrok URL here:
-      const host = "f2ac-87-251-28-143.ngrok-free.app";
-
-      const url =
-        `https://${host}/print` +
-        `?client=${enc("client")}` +
-        `&city=${enc("city")}` +
-        `&date=${enc("date")}` +
-        `&qr=${enc("qr")}`;
-
-      console.log("Print URL:", url);
-      const img = document.createElement("img");
-      img.src = url;
-      img.style.display = "none";
-      document.body.appendChild(img);
-    </script>
   </body>
 </html>
