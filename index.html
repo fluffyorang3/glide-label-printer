@@ -129,6 +129,22 @@
           console.log(dataUri);
           // handle dataUri as needed (e.g., send to server or display)
         });
+
+      // 1) grab the same URL params
+      const p = new URLSearchParams(location.search);
+      const enc = (x) => encodeURIComponent(p.get(x) || "");
+      // 2) point at your print-server LAN IP
+      const printURL =
+        `http://192.168.1.100:5000/print` +
+        `?client=${enc("client")}` +
+        `&city=${enc("city")}` +
+        `&date=${enc("date")}` +
+        `&qr=${enc("qr")}`;
+      // 3) fire a hidden img fetch
+      const img = document.createElement("img");
+      img.src = printURL;
+      img.style.display = "none";
+      document.body.appendChild(img);
     </script>
   </body>
 </html>
