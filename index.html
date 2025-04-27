@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Auto-Print Label</title>
-    <!-- html2canvas for rendering the label DOM to a PNG -->
+    <title>Auto-Print RP410 Label</title>
+    <!-- QZ Tray JS + html2canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
-      /* 10×7 cm label, no margins */
       @page {
         size: 10cm 7cm;
         margin: 0;
@@ -16,13 +16,11 @@
         padding: 0;
         font-family: sans-serif;
       }
-
       .container {
         width: 10cm;
         height: 7cm;
         position: relative;
         box-sizing: border-box;
-        overflow: hidden;
       }
       .container::before {
         content: "";
@@ -32,17 +30,13 @@
         right: 0.05cm;
         bottom: 0.05cm;
         border: 0.1cm solid #000;
-        box-sizing: border-box;
-        pointer-events: none;
       }
-
       .left {
         width: 5cm;
         height: 7cm;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
       }
       #logo {
         max-width: 4.5cm;
@@ -54,7 +48,6 @@
         height: 5cm;
         margin-top: 0.2cm;
       }
-
       .right {
         position: absolute;
         top: 0;
@@ -97,40 +90,45 @@
     </div>
 
     <script>
-      // ============ CONFIGURATION ============
-      // Point this at your printer-proxy host+port:
-      const PROXY_URL =
-        "https://91ef-2a0d-3344-3446-2e10-3def-4206-3f20-fc06.ngrok-free.app/print";
+      // 1) Pull in URL params
+      const p = new URLSearchParams(location.search);
+      document.getElementById("qr").src = p.get("qr") || "";
+      document.getElementById("client").textContent = p.get("client") || "";
+      document.getElementById("city").textContent = p.get("city") || "";
+      document.getElementById("date").textContent = p.get("date") || "";
 
       window.addEventListener("load", async () => {
-        // 1) Populate fields from URL params
-        const p = new URLSearchParams(window.location.search);
-        document.getElementById("qr").src = p.get("qr") || "";
-        document.getElementById("client").textContent = p.get("client") || "";
-        document.getElementById("city").textContent = p.get("city") || "";
-        document.getElementById("date").textContent = p.get("date") || "";
-
         try {
-          // 2) Render the #content div to a high-res canvas
+          // 2) Connect to QZ Tray
+          await qz.websocket.connect();
+          console.log("✔ QZ Tray connection established");
+
+          // 3) Create printer config: use the exact name as QZ Tray lists it
+          const cfg = qz.configs.create("Rongta RP410");
+
+          // 4) Render to canvas
           const canvas = await html2canvas(document.getElementById("content"), {
             scale: 4,
             useCORS: true,
           });
 
-          // 3) Extract base64 PNG data
+          // 5) Extract PNG data
           const base64 = canvas.toDataURL("image/png").split(",")[1];
 
-          // 4) POST to your LAN proxy
-          const res = await fetch(PROXY_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: base64 }),
-          });
-          if (!res.ok) throw new Error(await res.text());
+          // 6) Print the image
+          await qz.print(cfg, [
+            {
+              type: "image",
+              format: "base64",
+              data: base64,
+            },
+          ]);
+          console.log("✅ Print job sent to RP410");
 
-          console.log("✅ Print job sent successfully");
+          // 7) Disconnect
+          await qz.websocket.disconnect();
         } catch (err) {
-          console.error("❌ Failed to print label:", err);
+          console.error("❌ Printing error:", err);
         }
       });
     </script>
