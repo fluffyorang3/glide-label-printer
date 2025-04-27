@@ -104,7 +104,7 @@
           console.log("✔ QZ Tray connection established");
 
           // 3) Create printer config: use the exact name as QZ Tray lists it
-          const cfg = qz.configs.create("Rongta RP410");
+          const cfg = qz.configs.create("Rongta RP4xx Series 200DPI TSC");
 
           // 4) Render to canvas
           const canvas = await html2canvas(document.getElementById("content"), {
