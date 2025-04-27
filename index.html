@@ -84,16 +84,19 @@
     <script>
       (async () => {
         const p = new URLSearchParams(location.search);
+
         // 1) Populate text fields
         document.getElementById("client").textContent = p.get("client") || "";
         document.getElementById("city").textContent = p.get("city") || "";
         document.getElementById("date").textContent = p.get("date") || "";
 
-        // 2) Fetch & embed the QR as SVG
+        // 2) Load QR as SVG for crisp print
         let qrUrl = p.get("qr") || "";
-        if (qrUrl.match(/quickchart\.io\/qr/)) {
-          // force SVG output
-          qrUrl += qrUrl.includes("format=") ? "" : "&format=svg";
+        if (
+          qrUrl.includes("quickchart.io/qr") &&
+          !qrUrl.includes("format=svg")
+        ) {
+          qrUrl += "&format=svg";
         }
         try {
           const res = await fetch(qrUrl);
@@ -101,24 +104,23 @@
           const blob = new Blob([svg], { type: "image/svg+xml" });
           document.getElementById("qr").src = URL.createObjectURL(blob);
         } catch (e) {
-          console.error("QR load failed, falling back:", e);
+          console.error("QR SVG failed, falling back to PNG:", e);
           document.getElementById("qr").src = qrUrl;
         }
 
-        // 3) Trigger print via fetch (no-cors) against your tunnel
-        const host = p.get("printHost");
-        if (!host) {
-          console.error("Missing printHost parameter—cannot send to printer");
-          return;
-        }
+        // 3) Replace this with your ngrok host each time:
+        const host = "9c8c-87-251-28-143.ngrok-free.app";
+
+        // 4) Fire the silent-print fetch
         const enc = (x) => encodeURIComponent(p.get(x) || "");
         const printURL =
           `https://${host}/print` +
           `?client=${enc("client")}` +
           `&city=${enc("city")}` +
           `&date=${enc("date")}` +
-          `&qr=${encodeURIComponent(qrUrl)}`;
-        console.log("Firing print:", printURL);
+          `&qr=${encodeURIComponent(p.get("qr") || "")}`;
+
+        console.log("Print URL:", printURL);
         fetch(printURL, { mode: "no-cors" });
       })();
     </script>
