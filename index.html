@@ -24,7 +24,6 @@
         position: absolute;
         inset: 0.05cm;
         border: 0.1cm solid #000;
-        box-sizing: border-box;
       }
       .left {
         width: 5cm;
@@ -58,12 +57,13 @@
         margin-bottom: 0.3cm;
       }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   </head>
   <body>
     <div id="content" class="container">
       <div class="left">
         <img id="logo" src="benian_logo.png" alt="Logo" />
-        <div id="qr"></div>
+        <img id="qr" src="" alt="QR" />
       </div>
       <div class="right">
         <div>
@@ -81,51 +81,34 @@
       </div>
     </div>
 
+    <!-- populate fields -->
     <script>
-      (async () => {
-        const p = new URLSearchParams(location.search);
+      const p = new URLSearchParams(location.search);
+      document.getElementById("qr").src = p.get("qr") || "";
+      document.getElementById("client").textContent = p.get("client") || "";
+      document.getElementById("city").textContent = p.get("city") || "";
+      document.getElementById("date").textContent = p.get("date") || "";
+    </script>
 
-        // 1) Populate text fields
-        document.getElementById("client").textContent = p.get("client") || "";
-        document.getElementById("city").textContent = p.get("city") || "";
-        document.getElementById("date").textContent = p.get("date") || "";
+    <!-- trigger print via ngrok -->
+    <script>
+      const p = new URLSearchParams(location.search);
+      const enc = (x) => encodeURIComponent(p.get(x) || "");
+      // ← your ngrok URL here:
+      const host = "f2ac-87-251-28-143.ngrok-free.app";
 
-        // 2) Load QR as SVG-data-URI for printing
-        let qrUrl = p.get("qr") || "";
-        if (
-          qrUrl.includes("quickchart.io/qr") &&
-          !qrUrl.includes("format=svg")
-        ) {
-          qrUrl += "&format=svg";
-        }
-        try {
-          const res = await fetch(qrUrl);
-          const svgText = await res.text();
-          document.getElementById("qr").innerHTML = svgText;
-        } catch (e) {
-          console.error("SVG fail:", e);
-          const img = document.createElement("img");
-          img.src = qrUrl.replace("format=svg", "format=png");
-          img.style.width = "5cm";
-          img.style.height = "5cm";
-          document.getElementById("qr").appendChild(img);
-        }
+      const url =
+        `https://${host}/print` +
+        `?client=${enc("client")}` +
+        `&city=${enc("city")}` +
+        `&date=${enc("date")}` +
+        `&qr=${enc("qr")}`;
 
-        // 3) Replace this with your ngrok host each time:
-        const host = "9c8c-87-251-28-143.ngrok-free.app";
-
-        // 4) Fire the silent-print fetch
-        const enc = (x) => encodeURIComponent(p.get(x) || "");
-        const printURL =
-          `https://${host}/print` +
-          `?client=${enc("client")}` +
-          `&city=${enc("city")}` +
-          `&date=${enc("date")}` +
-          `&qr=${encodeURIComponent(p.get("qr") || "")}`;
-
-        console.log("Print URL:", printURL);
-        fetch(printURL, { mode: "no-cors" });
-      })();
+      console.log("Print URL:", url);
+      const img = document.createElement("img");
+      img.src = url;
+      img.style.display = "none";
+      document.body.appendChild(img);
     </script>
   </body>
 </html>
