@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Auto-Print RP410 Label</title>
-    <!-- Only html2canvas now — QZ Tray and signing libraries removed -->
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <title>Print Label</title>
     <style>
+      /* 10×7 cm label, bold labels */
       @page {
         size: 10cm 7cm;
         margin: 0;
@@ -14,14 +13,18 @@
         margin: 0;
         padding: 0;
         font-family: sans-serif;
+        font-size: 12px;
+        font-weight: bold;
       }
-
       .container {
+        position: relative;
         width: 10cm;
         height: 7cm;
-        position: relative;
+        display: flex;
         box-sizing: border-box;
+        overflow: hidden;
       }
+      /* border overlay on top, inset slightly for tiny margin */
       .container::before {
         content: "";
         position: absolute;
@@ -30,6 +33,9 @@
         right: 0.05cm;
         bottom: 0.05cm;
         border: 0.1cm solid #000;
+        box-sizing: border-box;
+        pointer-events: none;
+        z-index: 10;
       }
       .left {
         width: 5cm;
@@ -37,94 +43,102 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: flex-start;
+        z-index: 1;
+        margin-left: 0;
       }
       #logo {
         max-width: 4.5cm;
         max-height: 1.5cm;
         margin-top: 0.2cm;
+        z-index: 1;
       }
       #qr {
         width: 5cm;
         height: 5cm;
         margin-top: 0.2cm;
+        z-index: 1;
       }
       .right {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 5cm;
-        height: 7cm;
+        flex: 1;
         padding: 0.4cm;
         display: flex;
         flex-direction: column;
         justify-content: space-around;
-        font-size: 16px;
-        font-weight: bold;
-      }
-      .label {
         font-size: 12px;
+        z-index: 1;
+      }
+      .right .label {
         font-weight: normal;
+        font-size: 16px;
+        margin-bottom: 0.1cm;
+      }
+      .right .value {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 0.3cm;
       }
     </style>
+    <!-- html2pdf.js for in-browser PDF conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- QZ Tray for direct print -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
   </head>
   <body>
     <div id="content" class="container">
       <div class="left">
+        <!-- Logo on top -->
         <img id="logo" src="benian_logo.png" alt="Logo" />
+        <!-- QR code below -->
         <img id="qr" src="" alt="QR code" />
       </div>
       <div class="right">
         <div>
           <div class="label">Client:</div>
-          <div id="client"></div>
+          <div class="value" id="client"></div>
         </div>
         <div>
           <div class="label">City:</div>
-          <div id="city"></div>
+          <div class="value" id="city"></div>
         </div>
         <div>
           <div class="label">Date:</div>
-          <div id="date"></div>
+          <div class="value" id="date"></div>
         </div>
       </div>
     </div>
-
     <script>
-      // ◉◉◉ CONFIGURE ◉◉◉
-      // Change this to your proxy’s public HTTPS URL:
-      const PROXY_URL = "https://YOUR-PROXY-HOST/print";
+      // Populate fields
+      const params = new URLSearchParams(window.location.search);
+      document.getElementById("qr").src = params.get("qr");
+      document.getElementById("client").textContent =
+        params.get("client") || "";
+      document.getElementById("city").textContent = params.get("city") || "";
+      document.getElementById("date").textContent = params.get("date") || "";
 
-      // 1) Populate fields from URL params
-      const p = new URLSearchParams(location.search);
-      document.getElementById("qr").src = p.get("qr") || "";
-      document.getElementById("client").textContent = p.get("client") || "";
-      document.getElementById("city").textContent = p.get("city") || "";
-      document.getElementById("date").textContent = p.get("date") || "";
-
-      window.addEventListener("load", async () => {
-        try {
-          // 2) Render the label to a high-res canvas
-          const canvas = await html2canvas(document.getElementById("content"), {
-            scale: 4,
-            useCORS: true,
-          });
-
-          // 3) Extract base64 PNG data
-          const base64 = canvas.toDataURL("image/png").split(",")[1];
-
-          // 4) Send to your print-proxy
-          const resp = await fetch(PROXY_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: base64 }),
-          });
-          if (!resp.ok) throw new Error(await resp.text());
-
-          console.log("✅ Print job sent");
-        } catch (err) {
-          console.error("❌ Printing failed:", err);
-        }
-      });
+      // Silent print via QZ Tray to Rongta RP410
+      qz.websocket
+        .connect()
+        .then(() => qz.printers.find("Rongta RP410"))
+        .then((printer) =>
+          html2pdf()
+            .set({
+              margin: 0,
+              jsPDF: { unit: "cm", format: [10, 7], orientation: "landscape" },
+              html2canvas: { scale: 2 },
+            })
+            .from(document.getElementById("content"))
+            .toPdf()
+            .output("datauristring")
+            .then((dataUri) => ({ printer, dataUri }))
+        )
+        .then(({ printer, dataUri }) => {
+          const base64 = dataUri.split(",")[1];
+          return qz.print(printer, [
+            { type: "pdf", format: "base64", data: base64 },
+          ]);
+        })
+        .catch(console.error);
     </script>
   </body>
 </html>
