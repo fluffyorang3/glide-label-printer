@@ -98,18 +98,15 @@
       // ← your ngrok URL here:
       const host = "c22e-87-251-28-143.ngrok-free.app";
 
-      const url =
+      const printUrl =
         `https://${host}/print` +
         `?client=${enc("client")}` +
         `&city=${enc("city")}` +
         `&date=${enc("date")}` +
         `&qr=${enc("qr")}`;
 
-      console.log("Print URL:", url);
-      const img = document.createElement("img");
-      img.src = url;
-      img.style.display = "none";
-      document.body.appendChild(img);
+      console.log("Firing print:", printUrl);
+      fetch(printUrl, { mode: "no-cors" });
     </script>
   </body>
 </html>
