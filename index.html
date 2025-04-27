@@ -63,7 +63,7 @@
     <div id="content" class="container">
       <div class="left">
         <img id="logo" src="benian_logo.png" alt="Logo" />
-        <img id="qr" src="" alt="QR" />
+        <div id="qr"></div>
       </div>
       <div class="right">
         <div>
@@ -101,12 +101,14 @@
         try {
           const res = await fetch(qrUrl);
           const svgText = await res.text();
-          const svgBase64 = btoa(unescape(encodeURIComponent(svgText)));
-          document.getElementById("qr").src =
-            "data:image/svg+xml;base64," + svgBase64;
+          document.getElementById("qr").innerHTML = svgText;
         } catch (e) {
-          console.error("QR SVG failed, falling back to PNG:", e);
-          document.getElementById("qr").src = qrUrl;
+          console.error("SVG fail:", e);
+          const img = document.createElement("img");
+          img.src = qrUrl.replace("format=svg", "format=png");
+          img.style.width = "5cm";
+          img.style.height = "5cm";
+          document.getElementById("qr").appendChild(img);
         }
 
         // 3) Replace this with your ngrok host each time:
