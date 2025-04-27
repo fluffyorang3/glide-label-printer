@@ -3,12 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <title>Auto-Print RP410 Label</title>
-    <!-- QZ Tray JS + html2canvas -->
-    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
+    <!-- Only html2canvas now — QZ Tray and signing libraries removed -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <!-- jsrsasign library required for JavaScript signing. In production, download and reference a local copy!!-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/11.1.0/jsrsasign-all-min.js"></script>
-    <script src="assets/signing/sign-message.js"></script>
     <style>
       @page {
         size: 10cm 7cm;
@@ -19,6 +15,7 @@
         padding: 0;
         font-family: sans-serif;
       }
+
       .container {
         width: 10cm;
         height: 7cm;
@@ -93,17 +90,11 @@
     </div>
 
     <script>
-      // ───────────────────────────────────────────────────────────────
-      // 1) Tell QZ Tray “here’s the exact CA cert you already trusted”
-      // ───────────────────────────────────────────────────────────────
-      qz.security.setCertificatePromise((resolve, reject) => {
-        // Copy the contents of C:\ProgramData\qz\ssl\root-ca.crt below:
-        const ca =
-          '-----BEGIN CERTIFICATE-----\\n" +\n"MIIECzCCAvOgAwIBAgIGAZZ2sJP0MA0GCSqGSIb3DQEBCwUAMIGiMQswCQYDVQQG\\n" +\n"EwJVUzELMAkGA1UECAwCTlkxEjAQBgNVBAcMCUNhbmFzdG90YTEbMBkGA1UECgwS\\n" +\n"UVogSW5kdXN0cmllcywgTExDMRswGQYDVQQLDBJRWiBJbmR1c3RyaWVzLCBMTEMx\\n" +\n"HDAaBgkqhkiG9w0BCQEWDXN1cHBvcnRAcXouaW8xGjAYBgNVBAMMEVFaIFRyYXkg\\n" +\n"RGVtbyBDZXJ0MB4XDTI1MDQyNjEwMDAwNVoXDTQ1MDQyNjEwMDAwNVowgaIxCzAJ\\n" +\n"BgNVBAYTAlVTMQswCQYDVQQIDAJOWTESMBAGA1UEBwwJQ2FuYXN0b3RhMRswGQYD\\n" +\n"VQQKDBJRWiBJbmR1c3RyaWVzLCBMTEMxGzAZBgNVBAsMElFaIEluZHVzdHJpZXMs\\n" +\n"IExMQzEcMBoGCSqGSIb3DQEJARYNc3VwcG9ydEBxei5pbzEaMBgGA1UEAwwRUVog\\n" +\n"VHJheSBEZW1vIENlcnQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDW\\n" +\n"ltZO9xgMi1HA6GFJ1rR3FX6OF6QyUUiLKAwP7g8\/8T883TXPoiT4M1adYM7INUTb\\n" +\n"Tnd58XYmusQO2HnYxsls09OsKVB6RY91VBx4Q8wIEaAqucw1iOGMnLmSzBBceKNH\\n" +\n"aUYym9A0Rtxfamx1y3mJjcaHN3ms+\/LgwJw80XhV18ZEtm1k3azxgf9UH9qIiMxH\\n" +\n"72viRk69ckLje1IpdFo\/eiOGPuqo2CB1MEGOl4ZcQFizZdHEqh1W9FoPN\/wcshMP\\n" +\n"wI6\/2YPemJwLJozs9kWEfHQvK6xnJdJB3lHwHtSBgkFQiRuN+iVMzyCOzXvUKyWJ\\n" +\n"SJWCN00sNNhqZ1N1QHSxAgMBAAGjRTBDMBIGA1UdEwEB\/wQIMAYBAf8CAQEwDgYD\\n" +\n"VR0PAQH\/BAQDAgEGMB0GA1UdDgQWBBSg0YaIRDLT3mxJI5q\/m\/PVJ+7CeTANBgkq\\n" +\n"hkiG9w0BAQsFAAOCAQEADAjj3sbHKdz64h9YJaClQT\/nm39KHujNP6gdmVgs1qMO\\n" +\n"HpaH7yVL60JIKs2IHBr2fg4AgSW0Eygvw3SB4iBIiDjBVRdjkBZlK+PDlj64S95a\\n" +\n"KwljEfFfgnmY98lgCIC\/zXXIpBNI2RiyoA5A\/n9qTtUQs\/l3DtHi8NGaMWF\/ebW7\\n" +\n"ukejBZxiaK4yDWhG5FX1BOjAsuRohAiToYu6OvC0LlVbMeC4IlXp51Wty3PDfL1h\\n" +\n"gqy2+DQwOk1N+Shl2qkeT3TQjJ0219QztDauYfcWtcVkDGfLVDQNtJ6TCuX8CTv8\\n" +\n"vqEk3EHvCtb5xnEDk9tp1elUXZR\/AKjCOhUFQDUmjQ==\\n" +\n"-----END CERTIFICATE-----\\n" +\n"';
-        resolve(ca);
-      });
+      // ◉◉◉ CONFIGURE ◉◉◉
+      // Change this to your proxy’s public HTTPS URL:
+      const PROXY_URL = "https://YOUR-PROXY-HOST/print";
 
-      // 1) Pull in URL params
+      // 1) Populate fields from URL params
       const p = new URLSearchParams(location.search);
       document.getElementById("qr").src = p.get("qr") || "";
       document.getElementById("client").textContent = p.get("client") || "";
@@ -112,36 +103,26 @@
 
       window.addEventListener("load", async () => {
         try {
-          // 2) Connect to QZ Tray
-          await qz.websocket.connect();
-          console.log("✔ QZ Tray connection established");
-
-          // 3) Create printer config: use the exact name as QZ Tray lists it
-          const cfg = qz.configs.create("Rongta RP4xx Series 200DPI TSC");
-
-          // 4) Render to canvas
+          // 2) Render the label to a high-res canvas
           const canvas = await html2canvas(document.getElementById("content"), {
             scale: 4,
             useCORS: true,
           });
 
-          // 5) Extract PNG data
+          // 3) Extract base64 PNG data
           const base64 = canvas.toDataURL("image/png").split(",")[1];
 
-          // 6) Print the image
-          await qz.print(cfg, [
-            {
-              type: "image",
-              format: "base64",
-              data: base64,
-            },
-          ]);
-          console.log("✅ Print job sent to RP410");
+          // 4) Send to your print-proxy
+          const resp = await fetch(PROXY_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64 }),
+          });
+          if (!resp.ok) throw new Error(await resp.text());
 
-          // 7) Disconnect
-          await qz.websocket.disconnect();
+          console.log("✅ Print job sent");
         } catch (err) {
-          console.error("❌ Printing error:", err);
+          console.error("❌ Printing failed:", err);
         }
       });
     </script>
