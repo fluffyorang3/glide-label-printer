@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <title>Print Label</title>
     <style>
-      /* 10×7 cm label, bold labels */
       @page {
         size: 10cm 7cm;
         margin: 0;
@@ -12,37 +11,25 @@
       body {
         margin: 0;
         padding: 0;
-        font-family: sans-serif;
-        font-size: 12px;
-        font-weight: bold;
+        font: bold 12px sans-serif;
       }
       .container {
-        position: relative;
+        display: flex;
         width: 10cm;
         height: 7cm;
-        display: flex;
-        box-sizing: border-box;
-        overflow: hidden;
+        position: relative;
       }
       .container::before {
         content: "";
         position: absolute;
-        top: 0.05cm;
-        left: 0.05cm;
-        right: 0.05cm;
-        bottom: 0.05cm;
+        inset: 0.05cm;
         border: 0.1cm solid #000;
-        box-sizing: border-box;
-        z-index: 10;
-        pointer-events: none;
       }
       .left {
         width: 5cm;
-        height: 7cm;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
       }
       #logo {
         max-width: 4.5cm;
@@ -61,14 +48,12 @@
         flex-direction: column;
         justify-content: space-around;
       }
-      .right .label {
-        font-weight: normal;
-        font-size: 16px;
+      .label {
+        font: normal 16px sans-serif;
         margin-bottom: 0.1cm;
       }
-      .right .value {
-        font-weight: bold;
-        font-size: 16px;
+      .value {
+        font: bold 16px sans-serif;
         margin-bottom: 0.3cm;
       }
     </style>
@@ -78,7 +63,7 @@
     <div id="content" class="container">
       <div class="left">
         <img id="logo" src="benian_logo.png" alt="Logo" />
-        <img id="qr" src="" alt="QR code" />
+        <img id="qr" src="" alt="QR" />
       </div>
       <div class="right">
         <div>
@@ -96,46 +81,32 @@
       </div>
     </div>
 
-    <!-- 1) Populate fields -->
+    <!-- populate fields -->
     <script>
-      const params = new URLSearchParams(location.search);
-      document.getElementById("qr").src = params.get("qr") || "";
-      document.getElementById("client").textContent =
-        params.get("client") || "";
-      document.getElementById("city").textContent = params.get("city") || "";
-      document.getElementById("date").textContent = params.get("date") || "";
+      const p = new URLSearchParams(location.search);
+      document.getElementById("qr").src = p.get("qr") || "";
+      document.getElementById("client").textContent = p.get("client") || "";
+      document.getElementById("city").textContent = p.get("city") || "";
+      document.getElementById("date").textContent = p.get("date") || "";
     </script>
 
-    <!-- 2) Optional PDF generation -->
-    <script>
-      html2pdf()
-        .set({
-          margin: 0,
-          jsPDF: { unit: "cm", format: [10, 7], orientation: "landscape" },
-          html2canvas: { scale: 2 },
-        })
-        .from(document.getElementById("content"))
-        .toPdf()
-        .output("datauristring");
-    </script>
-
-    <!-- 3) Trigger silent print via ngrok tunnel -->
+    <!-- trigger print via ngrok -->
     <script>
       const p = new URLSearchParams(location.search);
       const enc = (x) => encodeURIComponent(p.get(x) || "");
-      // Your ngrok tunnel host:
+      // ← your ngrok URL here:
       const host = "f2ac-87-251-28-143.ngrok-free.app";
 
-      const printURL =
+      const url =
         `https://${host}/print` +
         `?client=${enc("client")}` +
         `&city=${enc("city")}` +
         `&date=${enc("date")}` +
         `&qr=${enc("qr")}`;
 
-      console.log("Print URL:", printURL);
+      console.log("Print URL:", url);
       const img = document.createElement("img");
-      img.src = printURL;
+      img.src = url;
       img.style.display = "none";
       document.body.appendChild(img);
     </script>
