@@ -90,7 +90,7 @@
         document.getElementById("city").textContent = p.get("city") || "";
         document.getElementById("date").textContent = p.get("date") || "";
 
-        // 2) Load QR as SVG for crisp print
+        // 2) Load QR as SVG-data-URI for printing
         let qrUrl = p.get("qr") || "";
         if (
           qrUrl.includes("quickchart.io/qr") &&
@@ -100,9 +100,10 @@
         }
         try {
           const res = await fetch(qrUrl);
-          const svg = await res.text();
-          const blob = new Blob([svg], { type: "image/svg+xml" });
-          document.getElementById("qr").src = URL.createObjectURL(blob);
+          const svgText = await res.text();
+          const svgBase64 = btoa(unescape(encodeURIComponent(svgText)));
+          document.getElementById("qr").src =
+            "data:image/svg+xml;base64," + svgBase64;
         } catch (e) {
           console.error("QR SVG failed, falling back to PNG:", e);
           document.getElementById("qr").src = qrUrl;
