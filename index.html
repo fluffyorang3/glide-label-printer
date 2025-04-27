@@ -24,7 +24,6 @@
         box-sizing: border-box;
         overflow: hidden;
       }
-      /* border overlay on top, inset slightly for tiny margin */
       .container::before {
         content: "";
         position: absolute;
@@ -34,8 +33,8 @@
         bottom: 0.05cm;
         border: 0.1cm solid #000;
         box-sizing: border-box;
-        pointer-events: none;
         z-index: 10;
+        pointer-events: none;
       }
       .left {
         width: 5cm;
@@ -44,7 +43,6 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        margin-left: 0;
       }
       #logo {
         max-width: 4.5cm;
@@ -62,7 +60,6 @@
         display: flex;
         flex-direction: column;
         justify-content: space-around;
-        font-size: 12px;
       }
       .right .label {
         font-weight: normal;
@@ -75,15 +72,12 @@
         margin-bottom: 0.3cm;
       }
     </style>
-    <!-- html2pdf.js for in-browser PDF conversion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   </head>
   <body>
     <div id="content" class="container">
       <div class="left">
-        <!-- Logo on top -->
         <img id="logo" src="benian_logo.png" alt="Logo" />
-        <!-- QR code below -->
         <img id="qr" src="" alt="QR code" />
       </div>
       <div class="right">
@@ -102,9 +96,9 @@
       </div>
     </div>
 
-    <!-- 1) Populate fields from URL parameters -->
+    <!-- 1) Populate fields -->
     <script>
-      const params = new URLSearchParams(window.location.search);
+      const params = new URLSearchParams(location.search);
       document.getElementById("qr").src = params.get("qr") || "";
       document.getElementById("client").textContent =
         params.get("client") || "";
@@ -112,7 +106,7 @@
       document.getElementById("date").textContent = params.get("date") || "";
     </script>
 
-    <!-- 2) (Optional) Convert to PDF in-browser -->
+    <!-- 2) Optional PDF generation -->
     <script>
       html2pdf()
         .set({
@@ -122,17 +116,15 @@
         })
         .from(document.getElementById("content"))
         .toPdf()
-        .output("datauristring")
-        .then(() => {
-          /* PDF generated if needed */
-        });
+        .output("datauristring");
     </script>
 
-    <!-- 3) Trigger silent print via Localtunnel -->
+    <!-- 3) Trigger silent print via ngrok tunnel -->
     <script>
       const p = new URLSearchParams(location.search);
       const enc = (x) => encodeURIComponent(p.get(x) || "");
-      const host = "tiny-baths-grow.loca.lt"; // <— your Localtunnel hostname
+      // Your ngrok tunnel host
+      const host = "f2ac-87-251-28-143.ngrok-free.app";
 
       const printURL =
         `https://${host}/print` +
