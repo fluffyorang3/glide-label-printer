@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <title>Print Label</title>
     <style>
-      /* 10×7 cm label, bold labels */
       @page {
         size: 10cm 7cm;
         margin: 0;
@@ -25,16 +24,12 @@
         position: absolute;
         inset: 0.05cm;
         border: 0.1cm solid #000;
-        box-sizing: border-box;
-        pointer-events: none;
-        z-index: 10;
       }
       .left {
         width: 5cm;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
       }
       #logo {
         max-width: 4.5cm;
@@ -68,7 +63,7 @@
     <div id="content" class="container">
       <div class="left">
         <img id="logo" src="benian_logo.png" alt="Logo" />
-        <img id="qr" src="" alt="QR code" />
+        <img id="qr" src="" alt="QR" />
       </div>
       <div class="right">
         <div>
@@ -86,9 +81,9 @@
       </div>
     </div>
 
-    <!-- 1) Populate label fields from URL params -->
+    <!-- populate fields -->
     <script>
-      const params = new URLSearchParams(window.location.search);
+      const params = new URLSearchParams(location.search);
       document.getElementById("qr").src = params.get("qr") || "";
       document.getElementById("client").textContent =
         params.get("client") || "";
@@ -96,37 +91,22 @@
       document.getElementById("date").textContent = params.get("date") || "";
     </script>
 
-    <!-- 2) Optional in-browser PDF generation -->
+    <!-- trigger print via ngrok -->
     <script>
-      html2pdf()
-        .set({
-          margin: 0,
-          jsPDF: { unit: "cm", format: [10, 7], orientation: "landscape" },
-          html2canvas: { scale: 2 },
-        })
-        .from(document.getElementById("content"))
-        .toPdf()
-        .output("datauristring");
-    </script>
+      const query = new URLSearchParams(location.search);
+      const enc = (x) => encodeURIComponent(query.get(x) || "");
+      // ← your ngrok URL here:
+      const host = "b6ed-87-251-28-143.ngrok-free.app";
 
-    <!-- 3) Trigger silent print via dynamic tunnel host -->
-    <script>
-      const p = new URLSearchParams(window.location.search);
-      const enc = (x) => encodeURIComponent(p.get(x) || "");
-      const host = p.get("printHost");
-      if (!host) {
-        console.error("Missing printHost parameter");
-      } else {
-        const printURL =
-          `https://${host}/print` +
-          `?client=${enc("client")}` +
-          `&city=${enc("city")}` +
-          `&date=${enc("date")}` +
-          `&qr=${enc("qr")}`;
-        console.log("Print URL:", printURL);
-        // Fire-and-forget, bypass CORS/CORB
-        fetch(printURL, { mode: "no-cors" });
-      }
+      const printUrl =
+        `https://${host}/print` +
+        `?client=${enc("client")}` +
+        `&city=${enc("city")}` +
+        `&date=${enc("date")}` +
+        `&qr=${enc("qr")}`;
+
+      console.log("Firing print:", printUrl);
+      fetch(printUrl, { mode: "no-cors" });
     </script>
   </body>
 </html>
