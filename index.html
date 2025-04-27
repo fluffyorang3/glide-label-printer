@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <title>Print Label</title>
@@ -81,8 +81,6 @@
     </style>
     <!-- html2pdf.js for in-browser PDF conversion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- QZ Tray for direct print -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
   </head>
   <body>
     <div id="content" class="container">
@@ -108,37 +106,29 @@
       </div>
     </div>
     <script>
-      // Populate fields
+      // Populate fields from URL params
       const params = new URLSearchParams(window.location.search);
-      document.getElementById("qr").src = params.get("qr");
+      document.getElementById("qr").src = params.get("qr") || "";
       document.getElementById("client").textContent =
         params.get("client") || "";
       document.getElementById("city").textContent = params.get("city") || "";
       document.getElementById("date").textContent = params.get("date") || "";
 
-      // Silent print via QZ Tray to Rongta RP410
-      qz.websocket
-        .connect()
-        .then(() => qz.printers.find("Rongta RP410"))
-        .then((printer) =>
-          html2pdf()
-            .set({
-              margin: 0,
-              jsPDF: { unit: "cm", format: [10, 7], orientation: "landscape" },
-              html2canvas: { scale: 2 },
-            })
-            .from(document.getElementById("content"))
-            .toPdf()
-            .output("datauristring")
-            .then((dataUri) => ({ printer, dataUri }))
-        )
-        .then(({ printer, dataUri }) => {
-          const base64 = dataUri.split(",")[1];
-          return qz.print(printer, [
-            { type: "pdf", format: "base64", data: base64 },
-          ]);
+      // Convert content to PDF and output as Base64 Data URI
+      html2pdf()
+        .set({
+          margin: 0,
+          jsPDF: { unit: "cm", format: [10, 7], orientation: "landscape" },
+          html2canvas: { scale: 2 },
         })
-        .catch(console.error);
+        .from(document.getElementById("content"))
+        .toPdf()
+        .output("datauristring")
+        .then((dataUri) => {
+          // Base64 PDF Data URI is in dataUri
+          console.log(dataUri);
+          // handle dataUri as needed (e.g., send to server or display)
+        });
     </script>
   </body>
 </html>
