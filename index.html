@@ -44,20 +44,17 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        z-index: 1;
         margin-left: 0;
       }
       #logo {
         max-width: 4.5cm;
         max-height: 1.5cm;
         margin-top: 0.2cm;
-        z-index: 1;
       }
       #qr {
         width: 5cm;
         height: 5cm;
         margin-top: 0.2cm;
-        z-index: 1;
       }
       .right {
         flex: 1;
@@ -66,7 +63,6 @@
         flex-direction: column;
         justify-content: space-around;
         font-size: 12px;
-        z-index: 1;
       }
       .right .label {
         font-weight: normal;
@@ -105,16 +101,19 @@
         </div>
       </div>
     </div>
+
+    <!-- 1) Populate fields from URL parameters -->
     <script>
-      // Populate fields from URL params
       const params = new URLSearchParams(window.location.search);
       document.getElementById("qr").src = params.get("qr") || "";
       document.getElementById("client").textContent =
         params.get("client") || "";
       document.getElementById("city").textContent = params.get("city") || "";
       document.getElementById("date").textContent = params.get("date") || "";
+    </script>
 
-      // Convert content to PDF and output as Base64 Data URI
+    <!-- 2) (Optional) Convert to PDF in-browser (no console.log) -->
+    <script>
       html2pdf()
         .set({
           margin: 0,
@@ -124,24 +123,24 @@
         .from(document.getElementById("content"))
         .toPdf()
         .output("datauristring")
-        .then((dataUri) => {
-          // Base64 PDF Data URI is in dataUri
-          console.log(dataUri);
-          // handle dataUri as needed (e.g., send to server or display)
+        .then(() => {
+          /* PDF generated in-browser if you need it */
         });
+    </script>
 
-      // 1) grab the same URL params
+    <!-- 3) Trigger silent print via Localtunnel -->
+    <script>
       const p = new URLSearchParams(location.search);
       const enc = (x) => encodeURIComponent(p.get(x) || "");
-      const host = "tiny-baths-grow.loca.lt";
-      // 2) point at your print-server LAN IP
+      const host = "tiny-baths-grow.loca.lt"; // <-- your Localtunnel host
+
       const printURL =
-        `https:${host}/print` +
+        `https://${host}/print` +
         `?client=${enc("client")}` +
         `&city=${enc("city")}` +
         `&date=${enc("date")}` +
         `&qr=${enc("qr")}`;
-      // 3) fire a hidden img fetch
+
       const img = document.createElement("img");
       img.src = printURL;
       img.style.display = "none";
