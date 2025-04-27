@@ -133,9 +133,10 @@
       // 1) grab the same URL params
       const p = new URLSearchParams(location.search);
       const enc = (x) => encodeURIComponent(p.get(x) || "");
+      const host = "tiny-baths-grow.loca.lt";
       // 2) point at your print-server LAN IP
       const printURL =
-        `https://tiny-baths-grow.loca.lt/print` +
+        `https:${host}/print` +
         `?client=${enc("client")}` +
         `&city=${enc("city")}` +
         `&date=${enc("date")}` +
