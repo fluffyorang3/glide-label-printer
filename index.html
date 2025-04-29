@@ -58,15 +58,22 @@
         text-align: center;
       }
       .divider {
-        width: 0.05cm;
+        width: 0;
+        border-left: 0.05cm solid #ccc;
         height: 3cm;
-        background: #ccc;
-        align-self: center;
         margin: 0 0.3cm;
+        align-self: center;
       }
       .right {
         flex: 1;
         padding: 0.4cm;
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* vertical centering */
+        align-items: flex-start; /* left-aligned horizontally */
+      }
+      .fields {
+        text-align: left; /* left align text */
       }
       .fields > div {
         margin-bottom: 0.3cm;
