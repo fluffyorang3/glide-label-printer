@@ -3,6 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <title>Print Label</title>
+    <!-- Import Montserrat font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
       @page {
         size: 10cm 7cm;
@@ -11,7 +16,7 @@
       body {
         margin: 0;
         padding: 0;
-        font-family: "Helvetica Neue", Arial, sans-serif;
+        font-family: "Montserrat", sans-serif;
         color: #333;
       }
       .container {
@@ -43,7 +48,6 @@
         height: 4cm;
         margin-top: 0.2cm;
       }
-      /* Website under QR code */
       .website {
         font-size: 14px;
         letter-spacing: 0.1em;
@@ -53,6 +57,13 @@
         margin-top: 0.1cm;
         text-align: center;
       }
+      .divider {
+        width: 0.05cm;
+        height: 3cm;
+        background: #ccc;
+        align-self: center;
+        margin: 0 0.3cm;
+      }
       .right {
         flex: 1;
         padding: 0.4cm;
@@ -61,6 +72,7 @@
         margin-bottom: 0.3cm;
       }
       .label {
+        font-family: "Montserrat", sans-serif;
         font-size: 14px;
         text-transform: uppercase;
         letter-spacing: 0.03em;
@@ -68,6 +80,7 @@
         margin-bottom: 0.05cm;
       }
       .value {
+        font-family: "Montserrat", sans-serif;
         font-size: 14px;
         font-weight: 600;
         color: #111;
@@ -82,6 +95,7 @@
         <img id="qr" src="" alt="QR" />
         <div class="website">www.benian.al</div>
       </div>
+      <div class="divider"></div>
       <div class="right">
         <div class="fields">
           <div>
